@@ -132,7 +132,8 @@ new_layout['projects'] = new_projects
 
 #pp.pprint(new_layout['includes'])
 #pp.pprint(new_layout['pipelines'])
-pp.pprint(new_layout['projects'])
+#pp.pprint(new_layout['projects'])
+print yaml.dump(new_layout)
 
 
 
