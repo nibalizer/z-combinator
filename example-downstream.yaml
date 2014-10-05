@@ -1,0 +1,94 @@
+# z-combinator doesn't do anything intelligent with this yet
+includes:
+  - python-file: openstack_functions.py
+
+# z-combinator doesn't do anything intelligent with this yet
+pipelines:
+  - name: check
+    description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
+    failure-message: Build failed.  For information on how to proceed, see https://wiki.openstack.org/wiki/GerritJenkinsGit#Test_Failures
+    manager: IndependentPipelineManager
+    precedence: low
+
+# z-combinator doesn't do anything intelligent with this yet
+project-templates:
+  - name: python-jobs
+    check:
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-docs'
+      - 'gate-{name}-python27'
+    gate:
+      - 'gate-{name}-docs'
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python27'
+    post:
+      - '{name}-branch-tarball'
+      - '{name}-coverage'
+
+# z-combinator doesn't do anything intelligent with this yet
+jobs:
+  - name: ^.*$
+    parameter-function: single_use_node
+  # jobs run on the tripleo workers
+    parameter-function: reusable_node
+  # jobs run on the pypi worker
+  - name: ^.*-(jenkinsci|mavencentral|pypi)-upload$
+    parameter-function: reusable_node
+  # jobs run on the mirror26, mirror27 and mirror33 workers
+  - name: ^(periodic|post)-mirror-python(26|27|33)$
+    parameter-function: reusable_node
+  # jobs that run on the salt-trigger worker
+  - name: ^.*-drift-from-.*$
+    parameter-function: reusable_node
+
+# The project list is grouped by type of project, and within each
+# group, projects are sorted (mostly) alphabetically.
+# z-combinator can merge projects
+projects:
+
+# Section: OpenStack server projects
+
+
+  - name: openstack/cinder
+    template:
+      - name: python-jobs
+      - name: periodic-havana
+      - name: integrated-gate
+      - name: tarballs
+      - name: hp-master-sync-jobs
+      - name: hp-ee-master-sync-jobs
+    check:
+      - gate-ce-validate-commit
+    experimental:
+      - gate-ce-on-hlinux
+      - gate-ee-on-hlinux
+
+  - name: openstack/cliff
+    template:
+      - name: hp-master-sync-jobs
+      - name: hp-ee-master-sync-jobs
+    check:
+      - gate-ce-validate-commit
+      - gate-cliff-pep8
+      - gate-cliff-python27
+      - gate-cliff-tox-neutronclient-stable
+      - gate-cliff-tox-neutronclient-tip
+      - gate-cliff-tox-openstackclient-stable
+      - gate-cliff-tox-openstackclient-tip
+    gate:
+      - gate-cliff-pep8
+      - gate-cliff-python27
+      - gate-cliff-tox-neutronclient-stable
+      - gate-cliff-tox-neutronclient-tip
+      - gate-cliff-tox-openstackclient-stable
+      - gate-cliff-tox-openstackclient-tip
+    post:
+      - cliff-branch-tarball
+    pre-release:
+      - cliff-tarball
+    release:
+      - cliff-tarball:
+        - cliff-pypi-upload:
+          - post-mirror-python27
+          - post-mirror-python33
+

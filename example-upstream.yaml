@@ -1,0 +1,108 @@
+# z-combinator doesn't do anything intelligent with this yet
+includes:
+  - python-file: openstack_functions.py
+
+# z-combinator doesn't do anything intelligent with this yet
+pipelines:
+  - name: check
+    description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
+    failure-message: Build failed.  For information on how to proceed, see https://wiki.openstack.org/wiki/GerritJenkinsGit#Test_Failures
+    manager: IndependentPipelineManager
+    source: gerrit
+    precedence: normal
+
+# z-combinator doesn't do anything intelligent with this yet
+project-templates:
+  - name: merge-check
+    merge-check:
+      - noop
+
+  - name: python-jobs
+    check:
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-docs'
+      - 'gate-{name}-python26'
+      - 'gate-{name}-python27'
+    gate:
+      - 'gate-{name}-docs'
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python26'
+      - 'gate-{name}-python27'
+    post:
+      - '{name}-branch-tarball'
+
+# z-combinator doesn't do anything intelligent with this yet
+jobs:
+  - name: ^.*$
+    parameter-function: set_node_options_default_trusty
+    swift:
+      - name: logs
+  # The infra puppet configs predominantly run on precise nodes.
+  # Test puppet for infra by default on precise nodes until that changes.
+  - name: ^gate-config-puppet.*$
+    parameter-function: set_node_options_default_precise
+  # We're planning on Puppet 2.7 support to Spring 2015.
+  - name: ^.*puppet-unit-2.7$
+    parameter-function: set_node_options_default_precise
+
+# The project list is grouped by type of project, and within each
+# group, projects are sorted (mostly) alphabetically.
+# z-combinator can merge projects
+projects:
+
+########################################################################
+# Section: OpenStack server projects
+########################################################################
+
+  - name: openstack/barbican
+    template:
+      - name: merge-check
+      - name: python-jobs
+      - name: translation-jobs
+      - name: openstack-server-publish-jobs
+    check:
+      - gate-barbican-devstack-dsvm
+    gate:
+      - gate-barbican-devstack-dsvm
+    pre-release:
+      - barbican-tarball
+    release:
+      - barbican-tarball
+
+  - name: openstack/barbican-specs
+    template:
+      - name: merge-check
+      - name: openstack-specs-jobs
+
+  - name: openstack/ceilometer
+    template:
+      - name: merge-check
+      - name: python-jobs
+      - name: python3-jobs
+      - name: openstack-server-publish-jobs
+      - name: periodic-icehouse
+      - name: check-requirements
+      - name: integrated-gate
+      - name: translation-jobs
+    check:
+      - check-devstack-dsvm-cells
+      - check-swift-dsvm-functional
+      - gate-tempest-dsvm-ceilometer-mongodb
+      - gate-tempest-dsvm-ceilometer-mongodb-full
+    gate:
+      - gate-devstack-dsvm-cells
+      - gate-swift-dsvm-functional
+    post:
+      - ceilometer-coverage
+    experimental:
+      - gate-grenade-dsvm-forward
+    pre-release:
+      - ceilometer-tarball
+    release:
+      - ceilometer-tarball
+      - ceilometer-merge-release-tags
+
+  - name: openstack/barbican-specs
+    template:
+      - name: merge-check
+      - name: openstack-specs-jobs
