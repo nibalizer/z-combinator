@@ -47,6 +47,8 @@ def merge_project(project, override):
 
     # Adds second
 
+    for sec, contents in override['add'].iteritems():
+        new_project[sec] += contents
 
 
     return new_project
