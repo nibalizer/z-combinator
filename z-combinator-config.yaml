@@ -3,7 +3,7 @@ z-combinator:
   upstream: example-upstream.yaml
   downstream: example-downstream.yaml
 projects:
-  - name: openstack/ceilometer
+  openstack/ceilometer:
     remove:
       template:
         - name: merge-check
@@ -13,7 +13,7 @@ projects:
         - name: check-requirements
         - name: translation-jobs
       check:
-        - check-devstack-dvsm-cells
+        - check-devstack-dsvm-cells
         - check-swift-dsvm-functional
         - gate-tempest-dsvm-ceilometer-mongodb
         - gate-tempest-dsvm-ceilometer-mongodb-full
@@ -29,3 +29,12 @@ projects:
       release:
         - ceilometer-tarball
         - ceilometer-merge-release-tags
+    add:
+      template:
+        - name: periodic-havana
+        - name: tarballs
+        - name: hp-master-sync-jobs
+        - name: hp-ee-master-sync-jobs
+      check:
+        - gate-ce-validate-commit
+  openstack/barbican-specs: delete
