@@ -1,0 +1,31 @@
+---
+z-combinator:
+  upstream: example-upstream.yaml
+  downstream: example-downstream.yaml
+projects:
+  - name: openstack/ceilometer
+    remove:
+      template:
+        - name: merge-check
+        - name: python3-jobs
+        - name: openstack-server-publish-jobs
+        - name: periodic-icehouse
+        - name: check-requirements
+        - name: translation-jobs
+      check:
+        - check-devstack-dvsm-cells
+        - check-swift-dsvm-functional
+        - gate-tempest-dsvm-ceilometer-mongodb
+        - gate-tempest-dsvm-ceilometer-mongodb-full
+      gate:
+        - gate-devstack-dsvm-cells
+        - gate-swift-dsvm-functional
+      post:
+        - ceilometer-coverage
+      experimental:
+        - gate-grenade-dsvm-forward
+      pre-release:
+        - ceilometer-tarball
+      release:
+        - ceilometer-tarball
+        - ceilometer-merge-release-tags
